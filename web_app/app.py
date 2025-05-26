@@ -6,6 +6,9 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# Set the application root to /travelcalc/
+app.config['APPLICATION_ROOT'] = '/travelcalc'
+
 @app.route('/')
 def home():
     return jsonify({

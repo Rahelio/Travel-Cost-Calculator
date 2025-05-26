@@ -4,4 +4,5 @@ timeout = 120
 accesslog = "access.log"
 errorlog = "error.log"
 capture_output = True
-enable_stdio_inheritance = True 
+enable_stdio_inheritance = True
+forwarded_allow_ips = '*' 
