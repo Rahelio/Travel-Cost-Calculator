@@ -58,18 +58,34 @@ class TravelCostService:
             raise Exception("Invalid end postcode format")
             
         url = f"{self.base_url}?origins={start_postcode}&destinations={end_postcode}&mode=driving&key={self.api_key}"
+        print(f"Making request to Google Maps API with URL: {url}")  # Debug log
         
         try:
             response = requests.get(url)
             response.raise_for_status()
             data = response.json()
+            print(f"Google Maps API response: {data}")  # Debug log
             
             if data['status'] != 'OK':
-                raise Exception(f"Google Maps API error: {data['status']}")
+                error_message = f"Google Maps API error: {data['status']}"
+                if 'error_message' in data:
+                    error_message += f" - {data['error_message']}"
+                raise Exception(error_message)
             
-            duration = data['rows'][0]['elements'][0]['duration']['value']
+            if not data['rows'] or not data['rows'][0]['elements']:
+                raise Exception("No route found between the provided postcodes")
+            
+            element = data['rows'][0]['elements'][0]
+            if element['status'] != 'OK':
+                raise Exception(f"Route calculation failed: {element['status']}")
+            
+            duration = element['duration']['value']
             return duration
+        except requests.exceptions.RequestException as e:
+            print(f"Network error: {str(e)}")  # Debug log
+            raise Exception(f"Network error: {str(e)}")
         except Exception as e:
+            print(f"Error calculating travel time: {str(e)}")  # Debug log
             raise Exception(f"Error calculating travel time: {str(e)}")
 
 # Initialize the travel cost service

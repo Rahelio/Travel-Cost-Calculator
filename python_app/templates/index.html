@@ -148,6 +148,11 @@
             color: #ff4444;
             margin-top: 1rem;
             text-align: center;
+            padding: 1rem;
+            background-color: rgba(255, 68, 68, 0.1);
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
     </style>
 </head>
@@ -278,7 +283,15 @@
                 console.log('Received response:', data);
 
                 if (!response.ok) {
-                    throw new Error(data.error || 'Failed to calculate cost');
+                    let errorMessage = data.error || 'Failed to calculate cost';
+                    // Add more context to the error message
+                    if (errorMessage.includes('Google Maps API error')) {
+                        errorMessage += '\n\nPlease check that:\n' +
+                            '1. The postcodes are valid UK postcodes\n' +
+                            '2. The Google Maps API key is valid and has the Distance Matrix API enabled\n' +
+                            '3. The API key has sufficient quota';
+                    }
+                    throw new Error(errorMessage);
                 }
 
                 const minutes = data.travelTime / 60;
