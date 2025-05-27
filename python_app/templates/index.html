@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Cost Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #000000;
+            --secondary-bg: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --accent-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background-color: var(--secondary-bg);
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .base-rate-input {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .base-rate-input span {
+            font-size: 18px;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--accent-color);
+            color: var(--primary-bg);
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary-bg);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .breakdown {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: var(--secondary-bg);
+            border-radius: 10px;
+        }
+
+        .breakdown h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 14px;
+        }
+
+        .breakdown-row.total {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .error {
+            color: #ff4444;
+            margin-top: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Travel Cost Calculator</h1>
+        
+        <div class="input-group">
+            <label for="startPostcode">Start Postcode</label>
+            <input type="text" id="startPostcode" placeholder="Enter start postcode">
+        </div>
+
+        <div class="input-group">
+            <label for="endPostcode">End Postcode</label>
+            <input type="text" id="endPostcode" placeholder="Enter end postcode">
+        </div>
+
+        <div class="input-group">
+            <label for="baseRate">Base Rate per Hour</label>
+            <div class="base-rate-input">
+                <span>£</span>
+                <input type="number" id="baseRate" placeholder="Enter hourly rate">
+            </div>
+        </div>
+
+        <button id="calculateBtn" onclick="calculateCost()">
+            Calculate Cost
+        </button>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="breakdown" class="breakdown" style="display: none;">
+            <h2>Calculation Breakdown</h2>
+            <div id="breakdownContent"></div>
+        </div>
+    </div>
+
+    <script>
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes}m`;
+            }
+            return `${minutes} minutes`;
+        }
+
+        function formatCurrency(amount) {
+            return `£${amount.toFixed(2)}`;
+        }
+
+        async function calculateCost() {
+            const startPostcode = document.getElementById('startPostcode').value;
+            const endPostcode = document.getElementById('endPostcode').value;
+            const baseRate = document.getElementById('baseRate').value;
+            const calculateBtn = document.getElementById('calculateBtn');
+            const errorDiv = document.getElementById('error');
+            const breakdownDiv = document.getElementById('breakdown');
+
+            if (!startPostcode || !endPostcode || !baseRate) {
+                errorDiv.textContent = 'Please fill in all fields';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            calculateBtn.innerHTML = '<div class="loading"><div class="spinner"></div>Calculating...</div>';
+            calculateBtn.disabled = true;
+            errorDiv.style.display = 'none';
+            breakdownDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        startPostcode,
+                        endPostcode,
+                        baseRate: parseFloat(baseRate)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to calculate cost');
+                }
+
+                const minutes = data.travelTime / 60;
+                const costPerMinute = data.costPerMinute;
+                const timeBasedCost = data.timeBasedCost;
+                const totalCost = data.totalCost;
+
+                const breakdownContent = document.getElementById('breakdownContent');
+                breakdownContent.innerHTML = `
+                    <div class="breakdown-row">
+                        <span>Travel Time</span>
+                        <span>${formatTime(data.travelTime)}</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span>Hourly Rate</span>
+                        <span>${formatCurrency(parseFloat(baseRate))}</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span>Minute Rate</span>
+                        <span>${formatCurrency(costPerMinute)}</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span>Time Cost</span>
+                        <span>${formatCurrency(timeBasedCost)}</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span>Base Rate</span>
+                        <span>${formatCurrency(parseFloat(baseRate))}</span>
+                    </div>
+                    <div class="breakdown-row total">
+                        <span>Total Cost</span>
+                        <span>${formatCurrency(totalCost)}</span>
+                    </div>
+                `;
+
+                breakdownDiv.style.display = 'block';
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                calculateBtn.innerHTML = 'Calculate Cost';
+                calculateBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html> 
