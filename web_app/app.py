@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import os
 from dotenv import load_dotenv
 
@@ -11,10 +11,7 @@ app.config['APPLICATION_ROOT'] = '/travelcalc'
 
 @app.route('/')
 def home():
-    return jsonify({
-        "status": "running",
-        "message": "Travel Cost Calculator API is running"
-    })
+    return render_template('index.html')
 
 @app.route('/api/calculate', methods=['POST'])
 def calculate_cost():
