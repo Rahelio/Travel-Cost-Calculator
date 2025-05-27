@@ -30,10 +30,35 @@ class TravelCostService {
                 throw TravelCostError.networkError
             }
             
+            // Print raw response for debugging
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Raw API Response: \(jsonString)")
+            }
+            
             let mapsResponse = try JSONDecoder().decode(GoogleMapsResponse.self, from: data)
             
-            guard let duration = mapsResponse.rows.first?.elements.first?.duration.value else {
-                print("No duration found in response")
+            // Check overall API status
+            if mapsResponse.status != "OK" {
+                print("API returned non-OK status: \(mapsResponse.status)")
+                throw TravelCostError.invalidResponse
+            }
+            
+            // Check if we have rows and elements
+            guard let firstRow = mapsResponse.rows.first,
+                  let firstElement = firstRow.elements.first else {
+                print("No rows or elements in response")
+                throw TravelCostError.invalidResponse
+            }
+            
+            // Check element status
+            if firstElement.status != "OK" {
+                print("Element status is not OK: \(firstElement.status)")
+                throw TravelCostError.invalidResponse
+            }
+            
+            // Get duration
+            guard let duration = firstElement.duration?.value else {
+                print("No duration value in response")
                 throw TravelCostError.invalidResponse
             }
             
@@ -64,10 +89,23 @@ struct GoogleMapsResponse: Codable {
     
     struct Element: Codable {
         let status: String
-        let duration: Duration
+        let duration: Duration?
+        let distance: Distance?
+        
+        enum CodingKeys: String, CodingKey {
+            case status
+            case duration
+            case distance
+        }
     }
     
     struct Duration: Codable {
         let value: Int // Duration in seconds
+        let text: String
+    }
+    
+    struct Distance: Codable {
+        let value: Int // Distance in meters
+        let text: String
     }
 } 
