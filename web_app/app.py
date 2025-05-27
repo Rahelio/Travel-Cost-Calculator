@@ -20,6 +20,7 @@ except Exception as e:
 
 try:
     app = Flask(__name__)
+    app.debug = True  # Enable debug mode
     logger.info("Flask app created successfully")
 except Exception as e:
     logger.error(f"Error creating Flask app: {str(e)}")
@@ -161,6 +162,6 @@ if __name__ == '__main__':
     try:
         port = int(os.getenv('PORT', 8001))
         logger.info(f"Starting Flask app on port {port}")
-        app.run(host='0.0.0.0', port=port)
+        app.run(host='0.0.0.0', port=port, debug=True)
     except Exception as e:
         logger.error(f"Error starting Flask app: {str(e)}") 
