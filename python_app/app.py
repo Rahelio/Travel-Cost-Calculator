@@ -8,8 +8,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/travel-calculator/static')
 app.config['SQLALCHEMY_DATABASE_URL'] = 'sqlite:///travel_costs.db'
+app.config['APPLICATION_ROOT'] = '/travel-calculator'
 db = SQLAlchemy(app)
 
 # Database Model
@@ -94,4 +95,4 @@ def calculate():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True) 
+    app.run(host='127.0.0.1', port=8003, debug=True) 
