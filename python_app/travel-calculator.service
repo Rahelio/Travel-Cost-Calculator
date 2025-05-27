@@ -3,11 +3,13 @@ Description=Travel Cost Calculator Flask Application
 After=network.target
 
 [Service]
-User=YOUR_USERNAME
-WorkingDirectory=/path/to/Travel Cost Calculator/python_app
-Environment="PATH=/path/to/Travel Cost Calculator/python_app/venv/bin"
-ExecStart=/path/to/Travel Cost Calculator/python_app/venv/bin/python app.py
+User=rick
+WorkingDirectory=/home/rick/Travel-Cost-Calculator/python_app
+Environment="PATH=/home/rick/Travel-Cost-Calculator/python_app/venv/bin"
+Environment="PYTHONPATH=/home/rick/Travel-Cost-Calculator/python_app"
+ExecStart=/home/rick/Travel-Cost-Calculator/python_app/venv/bin/python app.py
 Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target 
