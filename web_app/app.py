@@ -2,34 +2,144 @@ from flask import Flask, request, jsonify, render_template
 import os
 from dotenv import load_dotenv
 import logging
+import sys
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging to stdout
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+try:
+    load_dotenv()
+    logger.info("Environment loaded successfully")
+except Exception as e:
+    logger.error(f"Error loading environment: {str(e)}")
 
-# Create Flask app with explicit template folder
-template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'templates'))
-logger.debug(f"Template directory: {template_dir}")
-logger.debug(f"Template exists: {os.path.exists(os.path.join(template_dir, 'index.html'))}")
-
-app = Flask(__name__, template_folder=template_dir)
+try:
+    app = Flask(__name__)
+    logger.info("Flask app created successfully")
+except Exception as e:
+    logger.error(f"Error creating Flask app: {str(e)}")
 
 # Set the application root to /travelcalc/
 app.config['APPLICATION_ROOT'] = '/travelcalc'
 
 @app.route('/')
 def home():
-    logger.debug("Home route accessed")
-    try:
-        return render_template('index.html')
-    except Exception as e:
-        logger.error(f"Error rendering template: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+    logger.info("Home route accessed")
+    return '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Travel Cost Calculator</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body {
+                background-color: #f8f9fa;
+                padding-top: 2rem;
+            }
+            .calculator-container {
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: white;
+                padding: 2rem;
+                border-radius: 10px;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+            .result-container {
+                margin-top: 2rem;
+                padding: 1rem;
+                border-radius: 5px;
+                display: none;
+            }
+            .form-label {
+                font-weight: 500;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="calculator-container">
+                <h1 class="text-center mb-4">Travel Cost Calculator</h1>
+                <form id="calculatorForm">
+                    <div class="mb-3">
+                        <label for="distance" class="form-label">Distance (miles)</label>
+                        <input type="number" class="form-control" id="distance" required step="0.1" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fuelPrice" class="form-label">Fuel Price ($/gallon)</label>
+                        <input type="number" class="form-control" id="fuelPrice" required step="0.01" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fuelEfficiency" class="form-label">Fuel Efficiency (miles/gallon)</label>
+                        <input type="number" class="form-control" id="fuelEfficiency" required step="0.1" min="0">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Calculate</button>
+                </form>
+                
+                <div id="result" class="result-container bg-light">
+                    <h3 class="text-center mb-3">Results</h3>
+                    <div class="row">
+                        <div class="col-6">
+                            <p><strong>Distance:</strong> <span id="resultDistance">0</span> miles</p>
+                            <p><strong>Fuel Price:</strong> $<span id="resultFuelPrice">0</span>/gallon</p>
+                        </div>
+                        <div class="col-6">
+                            <p><strong>Fuel Efficiency:</strong> <span id="resultFuelEfficiency">0</span> mpg</p>
+                            <p><strong>Total Cost:</strong> $<span id="resultCost">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('calculatorForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const data = {
+                    distance: parseFloat(document.getElementById('distance').value),
+                    fuelPrice: parseFloat(document.getElementById('fuelPrice').value),
+                    fuelEfficiency: parseFloat(document.getElementById('fuelEfficiency').value)
+                };
+
+                try {
+                    const response = await fetch('/travelcalc/api/calculate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+                    
+                    // Update results
+                    document.getElementById('resultDistance').textContent = result.distance;
+                    document.getElementById('resultFuelPrice').textContent = result.fuelPrice;
+                    document.getElementById('resultFuelEfficiency').textContent = result.fuelEfficiency;
+                    document.getElementById('resultCost').textContent = result.fuelCost;
+                    
+                    // Show results
+                    document.getElementById('result').style.display = 'block';
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while calculating. Please try again.');
+                }
+            });
+        </script>
+    </body>
+    </html>
+    '''
 
 @app.route('/api/calculate', methods=['POST'])
 def calculate_cost():
+    logger.info("Calculate route accessed")
     data = request.get_json()
     
     # Extract data from request
@@ -48,5 +158,9 @@ def calculate_cost():
     })
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 8001))
-    app.run(host='0.0.0.0', port=port) 
+    try:
+        port = int(os.getenv('PORT', 8001))
+        logger.info(f"Starting Flask app on port {port}")
+        app.run(host='0.0.0.0', port=port)
+    except Exception as e:
+        logger.error(f"Error starting Flask app: {str(e)}") 

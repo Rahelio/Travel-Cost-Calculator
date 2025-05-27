@@ -1,9 +1,10 @@
 bind = "0.0.0.0:8001"
-workers = 4
+workers = 1  # Start with 1 worker for debugging
 timeout = 120
-accesslog = "access.log"
-errorlog = "error.log"
+accesslog = "-"  # Log to stdout
+errorlog = "-"   # Log to stdout
 capture_output = True
 enable_stdio_inheritance = True
 forwarded_allow_ips = '*'
-loglevel = 'debug' 
+loglevel = 'debug'
+reload = True    # Enable auto-reload for development 
