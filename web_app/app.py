@@ -132,7 +132,7 @@ def home():
         </script>
     </body>
     </html>
-    '''
+    ''', 200, {'Content-Type': 'text/html'}
 
 @app.route('/api/calculate', methods=['POST'])
 def calculate_cost():
