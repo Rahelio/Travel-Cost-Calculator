@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__, static_url_path='/travel-calculator/static')
-app.config['SQLALCHEMY_DATABASE_URL'] = 'sqlite:///travel_costs.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///travel_costs.db'
 app.config['APPLICATION_ROOT'] = '/travel-calculator'
 db = SQLAlchemy(app)
 
