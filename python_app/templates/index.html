@@ -200,6 +200,23 @@
             return `£${amount.toFixed(2)}`;
         }
 
+        function formatPostcode(postcode) {
+            // Remove all spaces and convert to uppercase
+            postcode = postcode.replace(/\s/g, '').toUpperCase();
+            
+            // Insert space before the last 3 characters
+            if (postcode.length > 3) {
+                postcode = postcode.slice(0, -3) + ' ' + postcode.slice(-3);
+            }
+            
+            return postcode;
+        }
+
+        function validatePostcode(postcode) {
+            const pattern = /^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$/;
+            return pattern.test(postcode);
+        }
+
         async function calculateCost() {
             const startPostcode = document.getElementById('startPostcode').value;
             const endPostcode = document.getElementById('endPostcode').value;
@@ -208,16 +225,35 @@
             const errorDiv = document.getElementById('error');
             const breakdownDiv = document.getElementById('breakdown');
 
+            // Clear previous errors
+            errorDiv.style.display = 'none';
+            breakdownDiv.style.display = 'none';
+
+            // Validate inputs
             if (!startPostcode || !endPostcode || !baseRate) {
                 errorDiv.textContent = 'Please fill in all fields';
                 errorDiv.style.display = 'block';
                 return;
             }
 
+            // Format and validate postcodes
+            const formattedStartPostcode = formatPostcode(startPostcode);
+            const formattedEndPostcode = formatPostcode(endPostcode);
+
+            if (!validatePostcode(formattedStartPostcode)) {
+                errorDiv.textContent = 'Invalid start postcode format. Please use a valid UK postcode (e.g., SW1A 1AA)';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (!validatePostcode(formattedEndPostcode)) {
+                errorDiv.textContent = 'Invalid end postcode format. Please use a valid UK postcode (e.g., SW1A 1AA)';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
             calculateBtn.innerHTML = '<div class="loading"><div class="spinner"></div>Calculating...</div>';
             calculateBtn.disabled = true;
-            errorDiv.style.display = 'none';
-            breakdownDiv.style.display = 'none';
 
             try {
                 const response = await fetch('/calculate', {
@@ -226,8 +262,8 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        startPostcode,
-                        endPostcode,
+                        startPostcode: formattedStartPostcode,
+                        endPostcode: formattedEndPostcode,
                         baseRate: parseFloat(baseRate)
                     })
                 });
@@ -280,6 +316,15 @@
                 calculateBtn.disabled = false;
             }
         }
+
+        // Add input event listeners to format postcodes as user types
+        document.getElementById('startPostcode').addEventListener('input', function(e) {
+            this.value = formatPostcode(this.value);
+        });
+
+        document.getElementById('endPostcode').addEventListener('input', function(e) {
+            this.value = formatPostcode(this.value);
+        });
     </script>
 </body>
 </html> 

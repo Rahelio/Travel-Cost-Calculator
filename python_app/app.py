@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
 import requests
+import re
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -12,6 +13,23 @@ app = Flask(__name__, static_url_path='/travel-calculator/static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///travel_costs.db'
 app.config['APPLICATION_ROOT'] = '/travel-calculator'
 db = SQLAlchemy(app)
+
+def format_postcode(postcode):
+    """Format UK postcode to standard format."""
+    # Remove all spaces and convert to uppercase
+    postcode = postcode.replace(" ", "").upper()
+    
+    # Insert space before the last 3 characters
+    if len(postcode) > 3:
+        postcode = postcode[:-3] + " " + postcode[-3:]
+    
+    return postcode
+
+def validate_postcode(postcode):
+    """Validate UK postcode format."""
+    # UK postcode regex pattern
+    pattern = r'^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$'
+    return bool(re.match(pattern, postcode))
 
 # Database Model
 class TravelRecord(db.Model):
@@ -29,6 +47,16 @@ class TravelCostService:
         self.base_url = "https://maps.googleapis.com/maps/api/distancematrix/json"
 
     def calculate_travel_time(self, start_postcode, end_postcode):
+        # Format postcodes
+        start_postcode = format_postcode(start_postcode)
+        end_postcode = format_postcode(end_postcode)
+        
+        # Validate postcodes
+        if not validate_postcode(start_postcode):
+            raise Exception("Invalid start postcode format")
+        if not validate_postcode(end_postcode):
+            raise Exception("Invalid end postcode format")
+            
         url = f"{self.base_url}?origins={start_postcode}&destinations={end_postcode}&mode=driving&key={self.api_key}"
         
         try:
