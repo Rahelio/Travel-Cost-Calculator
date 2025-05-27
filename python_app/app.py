@@ -91,15 +91,34 @@ class TravelCostService:
 # Initialize the travel cost service
 travel_service = TravelCostService(api_key=os.getenv('GOOGLE_MAPS_API_KEY'))
 
+# Add CORS support
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    return response
+
 @app.route('/')
 def index():
+    print("Serving index page")  # Debug log
     return render_template('index.html')
 
-@app.route('/calculate', methods=['POST'])
+@app.route('/calculate', methods=['POST', 'OPTIONS'])
 def calculate():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
+    print(f"Received {request.method} request to /calculate")  # Debug log
+    print(f"Request headers: {dict(request.headers)}")  # Debug log
+    
     try:
         data = request.get_json()
         print("Received request data:", data)  # Debug log
+        
+        if not data:
+            print("No JSON data received")  # Debug log
+            return jsonify({'error': 'No data received'}), 400
         
         start_postcode = data.get('startPostcode')
         end_postcode = data.get('endPostcode')

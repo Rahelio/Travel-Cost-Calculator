@@ -271,14 +271,16 @@
                 
                 console.log('Sending request with data:', requestBody);
 
-                const response = await fetch('/calculate', {
+                const response = await fetch('/travel-calculator/calculate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify(requestBody)
                 });
 
+                console.log('Response status:', response.status);
                 const data = await response.json();
                 console.log('Received response:', data);
 
