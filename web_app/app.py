@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 import os
 from dotenv import load_dotenv
 import logging
@@ -20,13 +20,9 @@ except Exception as e:
 
 try:
     app = Flask(__name__)
-    app.debug = True  # Enable debug mode
     logger.info("Flask app created successfully")
 except Exception as e:
     logger.error(f"Error creating Flask app: {str(e)}")
-
-# Set the application root to /travelcalc/
-app.config['APPLICATION_ROOT'] = '/travelcalc'
 
 @app.route('/')
 def home():
@@ -160,8 +156,8 @@ def calculate_cost():
 
 if __name__ == '__main__':
     try:
-        port = int(os.getenv('PORT', 8001))
+        port = int(os.getenv('PORT', 8003))
         logger.info(f"Starting Flask app on port {port}")
-        app.run(host='0.0.0.0', port=port, debug=True)
+        app.run(host='0.0.0.0', port=port)
     except Exception as e:
         logger.error(f"Error starting Flask app: {str(e)}") 
