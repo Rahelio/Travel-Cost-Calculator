@@ -83,21 +83,32 @@ def index():
 def calculate():
     try:
         data = request.get_json()
+        print("Received request data:", data)  # Debug log
+        
         start_postcode = data.get('startPostcode')
         end_postcode = data.get('endPostcode')
         base_rate = float(data.get('baseRate', 0))
+
+        print(f"Parsed data - Start: {start_postcode}, End: {end_postcode}, Rate: {base_rate}")  # Debug log
 
         if not all([start_postcode, end_postcode, base_rate]):
             return jsonify({'error': 'Missing required fields'}), 400
 
         # Calculate travel time
-        travel_time = travel_service.calculate_travel_time(start_postcode, end_postcode)
+        try:
+            travel_time = travel_service.calculate_travel_time(start_postcode, end_postcode)
+            print(f"Calculated travel time: {travel_time} seconds")  # Debug log
+        except Exception as e:
+            print(f"Error calculating travel time: {str(e)}")  # Debug log
+            return jsonify({'error': str(e)}), 500
         
         # Calculate costs
         minutes = travel_time / 60.0
         cost_per_minute = base_rate / 60.0
         time_based_cost = minutes * cost_per_minute
         total_cost = time_based_cost + base_rate
+
+        print(f"Calculated costs - Minutes: {minutes}, Cost per minute: {cost_per_minute}, Total: {total_cost}")  # Debug log
 
         # Save to database
         record = TravelRecord(
@@ -110,14 +121,17 @@ def calculate():
         db.session.add(record)
         db.session.commit()
 
-        return jsonify({
+        response_data = {
             'travelTime': travel_time,
             'totalCost': total_cost,
             'timeBasedCost': time_based_cost,
             'costPerMinute': cost_per_minute
-        })
+        }
+        print("Sending response:", response_data)  # Debug log
+        return jsonify(response_data)
 
     except Exception as e:
+        print(f"Unexpected error: {str(e)}")  # Debug log
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':

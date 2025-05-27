@@ -169,7 +169,7 @@
             <label for="baseRate">Base Rate per Hour</label>
             <div class="base-rate-input">
                 <span>£</span>
-                <input type="number" id="baseRate" placeholder="Enter hourly rate">
+                <input type="number" id="baseRate" placeholder="Enter hourly rate" step="0.01" min="0">
             </div>
         </div>
 
@@ -240,6 +240,8 @@
             const formattedStartPostcode = formatPostcode(startPostcode);
             const formattedEndPostcode = formatPostcode(endPostcode);
 
+            console.log('Formatted postcodes:', { start: formattedStartPostcode, end: formattedEndPostcode });
+
             if (!validatePostcode(formattedStartPostcode)) {
                 errorDiv.textContent = 'Invalid start postcode format. Please use a valid UK postcode (e.g., SW1A 1AA)';
                 errorDiv.style.display = 'block';
@@ -256,19 +258,24 @@
             calculateBtn.disabled = true;
 
             try {
+                const requestBody = {
+                    startPostcode: formattedStartPostcode,
+                    endPostcode: formattedEndPostcode,
+                    baseRate: parseFloat(baseRate)
+                };
+                
+                console.log('Sending request with data:', requestBody);
+
                 const response = await fetch('/calculate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        startPostcode: formattedStartPostcode,
-                        endPostcode: formattedEndPostcode,
-                        baseRate: parseFloat(baseRate)
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 const data = await response.json();
+                console.log('Received response:', data);
 
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to calculate cost');
