@@ -1,11 +1,19 @@
 from flask import Flask, request, jsonify, render_template
 import os
 from dotenv import load_dotenv
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
 # Create Flask app with explicit template folder
 template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'templates'))
+logger.debug(f"Template directory: {template_dir}")
+logger.debug(f"Template exists: {os.path.exists(os.path.join(template_dir, 'index.html'))}")
+
 app = Flask(__name__, template_folder=template_dir)
 
 # Set the application root to /travelcalc/
@@ -13,7 +21,12 @@ app.config['APPLICATION_ROOT'] = '/travelcalc'
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    logger.debug("Home route accessed")
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        logger.error(f"Error rendering template: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/calculate', methods=['POST'])
 def calculate_cost():
