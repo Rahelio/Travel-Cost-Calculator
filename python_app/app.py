@@ -172,4 +172,7 @@ def calculate():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(host='127.0.0.1', port=8003, debug=True) 
+    # Use 0.0.0.0 to allow external connections (required for Docker)
+    host = '0.0.0.0' if os.getenv('FLASK_ENV') == 'production' else '127.0.0.1'
+    debug = os.getenv('FLASK_ENV') != 'production'
+    app.run(host=host, port=8003, debug=debug) 
