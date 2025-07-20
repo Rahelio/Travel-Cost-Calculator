@@ -17,7 +17,7 @@ This directory contains Docker configuration files for the Travel Calculator Fla
 docker-compose up --build
 ```
 
-2. Access the application at: http://localhost:8003/travel-calculator/
+2. Access the application at: http://localhost:8003/
 
 3. To run in detached mode:
 ```bash
