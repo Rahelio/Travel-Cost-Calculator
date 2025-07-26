@@ -9,9 +9,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__, static_url_path='/travel-calculator/static')
+app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///travel_costs.db'
-app.config['APPLICATION_ROOT'] = '/travel-calculator'
 db = SQLAlchemy(app)
 
 def format_postcode(postcode):

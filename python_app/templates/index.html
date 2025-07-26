@@ -217,10 +217,7 @@
             return postcode;
         }
 
-        function validatePostcode(postcode) {
-            const pattern = /^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$/;
-            return pattern.test(postcode);
-        }
+
 
         async function calculateCost() {
             const startPostcode = document.getElementById('startPostcode').value;
@@ -241,23 +238,11 @@
                 return;
             }
 
-            // Format and validate postcodes
+            // Format postcodes
             const formattedStartPostcode = formatPostcode(startPostcode);
             const formattedEndPostcode = formatPostcode(endPostcode);
 
             console.log('Formatted postcodes:', { start: formattedStartPostcode, end: formattedEndPostcode });
-
-            if (!validatePostcode(formattedStartPostcode)) {
-                errorDiv.textContent = 'Invalid start postcode format. Please use a valid UK postcode (e.g., SW1A 1AA)';
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            if (!validatePostcode(formattedEndPostcode)) {
-                errorDiv.textContent = 'Invalid end postcode format. Please use a valid UK postcode (e.g., SW1A 1AA)';
-                errorDiv.style.display = 'block';
-                return;
-            }
 
             calculateBtn.innerHTML = '<div class="loading"><div class="spinner"></div>Calculating...</div>';
             calculateBtn.disabled = true;
@@ -271,7 +256,7 @@
                 
                 console.log('Sending request with data:', requestBody);
 
-                const response = await fetch('/travel-calculator/calculate', {
+                const response = await fetch('/calculate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
