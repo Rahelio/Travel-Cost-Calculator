@@ -163,7 +163,7 @@
     <div class="container">
         <h1>Travel Cost Calculator</h1>
         <div style="text-align: center; font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 1rem;">
-            v2.0 - Backend Validation Only
+            v2.1 - Fixed URLs for NPM Setup - Cache Bust: {{ timestamp }}
         </div>
         
         <form novalidate>
@@ -264,11 +264,15 @@
                 
                 console.log('Sending request with data:', requestBody);
 
-                const response = await fetch('/travel-calculator/calculate', {
+                const cacheBuster = new Date().getTime();
+                const response = await fetch(`/travel-calculator/calculate?v=${cacheBuster}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
                     },
                     body: JSON.stringify(requestBody)
                 });

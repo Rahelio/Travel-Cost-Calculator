@@ -102,7 +102,8 @@ def after_request(response):
 @app.route('/')
 def index():
     print("Serving index page")  # Debug log
-    return render_template('index.html')
+    import time
+    return render_template('index.html', timestamp=int(time.time()))
 
 @app.route('/calculate', methods=['POST', 'OPTIONS'])
 def calculate():
