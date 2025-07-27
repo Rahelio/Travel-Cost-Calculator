@@ -166,6 +166,7 @@
             v2.0 - Backend Validation Only
         </div>
         
+        <form novalidate>
         <div class="input-group">
             <label for="startPostcode">Start Postcode</label>
             <input type="text" id="startPostcode" placeholder="Enter start postcode">
@@ -184,9 +185,10 @@
             </div>
         </div>
 
-        <button id="calculateBtn" onclick="calculateCost()">
+        <button id="calculateBtn" onclick="calculateCost()" type="button">
             Calculate Cost
         </button>
+        </form>
 
         <div id="error" class="error" style="display: none;"></div>
 
@@ -277,6 +279,7 @@
 
                 if (!response.ok) {
                     let errorMessage = data.error || 'Failed to calculate cost';
+                    console.log('ERROR DETAILS:', { status: response.status, error: errorMessage, fullResponse: data });
                     // Add more context to the error message
                     if (errorMessage.includes('Google Maps API error')) {
                         errorMessage += '\n\nPlease check that:\n' +
